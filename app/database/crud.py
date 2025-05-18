@@ -1,13 +1,61 @@
-# Операции с БД (CRUD)
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.models import User
+from sqlalchemy import select, func
+from app.database.models import User, UserProfile
+from typing import Optional
 
-# Добавление пользователя в БД
-async def add_user(session: AsyncSession, user_id: int, name: str):
-    # Проверяем, есть ли пользователь
-    user = await session.get(User, user_id)
-    if not user:
-        # Если нет, создаём нового
-        user = User(user_id=user_id, name=name)
-        session.add(user)
+async def add_or_update_user(
+    session: AsyncSession,
+    telegram_id: int,
+    first_name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    username: Optional[str] = None
+) -> User:
+    """
+    Добавляет нового пользователя или обновляет существующего, создаёт профиль.
+
+    Args:
+        session: Асинхронная сессия SQLAlchemy.
+        telegram_id: Telegram ID пользователя.
+        first_name: Имя пользователя.
+        last_name: Фамилия пользователя.
+        username: Никнейм пользователя.
+
+    Returns:
+        User: Объект пользователя (новый или обновлённый).
+    """
+    async with session.begin():
+        # Проверяем, существует ли пользователь
+        user = await session.scalar(
+            select(User).filter_by(telegram_id=telegram_id)
+        )
+
+        if user:
+            # Обновляем данные
+            user.first_name = first_name
+            user.last_name = last_name
+            user.username = username
+            user.last_active = func.now()
+            user.updated_at = func.now()
+        else:
+            # Создаём нового пользователя
+            user = User(
+                telegram_id=telegram_id,
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                is_banned=False,
+                is_blocked=False,
+                language="ru",
+                last_active=func.now(),
+                created_at=func.now(),
+                updated_at=func.now()
+            )
+            session.add(user)
+            await session.flush()  # Получаем user.id
+
+            # Создаём профиль
+            profile = UserProfile(user_id=user.id)
+            session.add(profile)
+
         await session.commit()
+        return user
