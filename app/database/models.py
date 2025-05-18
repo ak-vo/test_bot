@@ -20,10 +20,14 @@ class User(Base):
     first_name: Mapped[str | None] = mapped_column(String(64))  # Имя пользователя из Telegram (например, "Иван")
     last_name: Mapped[str | None] = mapped_column(String(64))  # Фамилия пользователя из Telegram (например, "Иванов")
     username: Mapped[str | None] = mapped_column(String(32))  # Никнейм пользователя из Telegram (например, "@ivanov")
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False)  # Признак подписки (Telegram Premium)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)  # Забанен ли пользователь админом (True/False)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)  # Заблокировал ли пользователь бота (True/False)
-    language: Mapped[str | None] = mapped_column(String(10), default="ru")  # Код языка (например, "ru", "en")
+    language_code: Mapped[str | None] = mapped_column(String(10), default="ru")  # Язык Telegram клиента (например, "ru", "en")
     last_active: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True))  # Время последней активности (например, 2025-05-17 22:00:00+03)
+    consent_given: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)  # Согласие на обработку персональных данных
+    consent_date: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Дата и время согласия
+    consent_version: Mapped[str | None] = mapped_column(String(20), nullable=True)  # Версия соглашения (например, "1.0")
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # Время создания записи
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())  # Время последнего обновления
 

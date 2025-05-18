@@ -1,8 +1,8 @@
-"""Initial tables
+"""Create initial tables
 
-Revision ID: 3278ca59a19a
+Revision ID: e07d53dd2544
 Revises: 
-Create Date: 2025-05-17 22:06:02.405226
+Create Date: 2025-05-18 18:12:44.978790
 
 """
 from typing import Sequence, Union
@@ -13,13 +13,14 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import JSONB
 
 # revision identifiers, used by Alembic.
-revision: str = '3278ca59a19a'
+revision: str = 'e07d53dd2544'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade():
+def upgrade() -> None:
+    """Обновить схему."""
     # Создание таблицы users
     op.create_table(
         'users',
@@ -28,10 +29,14 @@ def upgrade():
         sa.Column('first_name', sa.String(64), nullable=True),  # Имя пользователя из Telegram
         sa.Column('last_name', sa.String(64), nullable=True),  # Фамилия пользователя из Telegram
         sa.Column('username', sa.String(32), nullable=True),  # Никнейм пользователя из Telegram (@username)
+        sa.Column('is_premium', sa.Boolean, server_default=sa.false(), nullable=False),  # Признак подписки (Telegram Premium)
         sa.Column('is_banned', sa.Boolean, server_default=sa.false(), nullable=False),  # Забанен ли пользователь
         sa.Column('is_blocked', sa.Boolean, server_default=sa.false(), nullable=False),  # Заблокировал ли бот
-        sa.Column('language', sa.String(10), server_default='ru', nullable=True),  # Код языка (ru, en)
+        sa.Column('language_code', sa.String(10), server_default='ru', nullable=True),  # Код языка (ru, en)
         sa.Column('last_active', sa.DateTime(timezone=True), nullable=True),  # Время последней активности
+        sa.Column('consent_given', sa.Boolean, server_default=sa.false(), nullable=False),  # Согласие на обработку персональных данных
+        sa.Column('consent_date', sa.DateTime(timezone=True), nullable=True),  # Дата и время согласия
+        sa.Column('consent_version', sa.String(20), nullable=True), # Версия соглашения (например, "1.0")
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),  # Время создания
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now(), nullable=False)  # Время обновления
     )
@@ -144,7 +149,9 @@ def upgrade():
     op.create_index('idx_payments_user_id', 'payments', ['user_id'])
 
 
-def downgrade():
+
+def downgrade() -> None:
+    """Откатить схему."""
     # Удаление таблиц в обратном порядке
     op.drop_table('payments')
     op.drop_table('notifications')

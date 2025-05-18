@@ -8,7 +8,8 @@ async def add_or_update_user(
     telegram_id: int,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
-    username: Optional[str] = None
+    username: Optional[str] = None,
+    is_premium: Optional[bool] = False
 ) -> User:
     """
     Добавляет нового пользователя или обновляет существующего, создаёт профиль.
@@ -34,6 +35,7 @@ async def add_or_update_user(
             user.first_name = first_name
             user.last_name = last_name
             user.username = username
+            user.is_premium = is_premium or False
             user.last_active = func.now()
             user.updated_at = func.now()
         else:
@@ -43,9 +45,10 @@ async def add_or_update_user(
                 first_name=first_name,
                 last_name=last_name,
                 username=username,
+                is_premium=is_premium or False,
                 is_banned=False,
                 is_blocked=False,
-                language="ru",
+                language_code="ru",
                 last_active=func.now(),
                 created_at=func.now(),
                 updated_at=func.now()

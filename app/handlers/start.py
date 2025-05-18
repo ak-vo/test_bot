@@ -13,6 +13,7 @@ async def handle_start(message: types.Message, session: AsyncSession):
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
     username = message.from_user.username
+    is_premium = message.from_user.is_premium
 
     # Добавляем или обновляем пользователя
     await add_or_update_user(
@@ -20,7 +21,8 @@ async def handle_start(message: types.Message, session: AsyncSession):
         telegram_id=telegram_id,
         first_name=first_name,
         last_name=last_name,
-        username=username
+        username=username,
+        is_premium=is_premium
     )
 
     # Отправляем приветственное сообщение
